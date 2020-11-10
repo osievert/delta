@@ -11,6 +11,7 @@ use syntect::parsing::SyntaxSet;
 
 use crate::bat::assets::HighlightingAssets;
 use crate::bat::output::PagingMode;
+use crate::env;
 use crate::git_config::GitConfig;
 use crate::git_config_entry::GitConfigEntry;
 use crate::options;
@@ -641,6 +642,14 @@ impl Opt {
         let mut opt = Opt::from_clap(&arg_matches);
         options::rewrite::apply_rewrite_rules(&mut opt, &arg_matches);
         options::set::set_options(&mut opt, git_config, &arg_matches, assets);
+        let e = env::get_env_var("DELTA_SIDE_BY_SIDE")
+            .map(|s| s.parse::<i8>().unwrap_or(-1i8))
+            .unwrap_or(-1i8);
+        opt.side_by_side = match e {
+            -1 => opt.side_by_side,
+            0 => false,
+            _ => true,
+        };
         opt
     }
 
